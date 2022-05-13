@@ -71,20 +71,34 @@ export default class Game {
         this.currentPawn = ""
 
         window.addEventListener('mousedown', e => {
-            if (playerBlackLoggedIn || playerWhiteLoggedIn) {
-                if (this.currentPawn != "")
-                    this.currentPawn.material.map = this.setMaterial(playerWhiteLoggedIn ? 0 : 1)
-                this.mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
-                this.mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                this.raycaster.setFromCamera(this.mouseVector, this.camera);
-                const intersects = this.raycaster.intersectObjects(this.scene.children);
-                if (intersects[0].object != this.currentPawn) {
-                    this.currentPawn = this.raycaster.intersectObjects(this.scene.children)[0].object;
-                    this.currentPawn.material.map = this.setMaterial(2)
-                    console.log(this.currentPawn.getColor());
-                } else {
-                    this.currentPawn = ""
+            try {
+                if (playerBlackLoggedIn || playerWhiteLoggedIn) {
+                    if (this.currentPawn != "")
+                        if (this.currentPawn.getColor() === "black" && playerBlackLoggedIn)
+                            this.currentPawn.material.map = this.setMaterial(1)
+                        else if (this.currentPawn.getColor() === "white" && !playerBlackLoggedIn)
+                            this.currentPawn.material.map = this.setMaterial(0)
+                    this.mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    this.mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                    this.raycaster.setFromCamera(this.mouseVector, this.camera);
+                    const intersects = this.raycaster.intersectObjects(this.scene.children);
+                    if (intersects[0].object != this.currentPawn) {
+                        this.currentPawn = this.raycaster.intersectObjects(this.scene.children)[0].object;
+                        if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
+                            console.log(this.currentPawn)
+                            this.currentPawn.material.map = this.setMaterial(2)
+                        } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
+                            this.currentPawn.material.map = this.setMaterial(2)
+                            console.log(this.currentPawn)
+                        }
+                        console.log(this.currentPawn.getColor());
+                    } else {
+                        this.currentPawn = ""
+                    }
                 }
+            } catch (e) {
+                this.currentPawn = ""
+                console.log('nie klikasz w pionka')
             }
         })
     }
@@ -106,12 +120,12 @@ export default class Game {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.szachownica[i][j] == 0) {
-                    const pawn = new Item("white")//new THREE.Mesh(geometry, materialBialy);
+                    const pawn = new Item("white", j, i)//new THREE.Mesh(geometry, materialBialy);
                     pawn.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5))
                     this.scene.add(pawn);
                 }
                 else {
-                    const pawn = new Item("black")//new THREE.Mesh(geometry, materialBialy);
+                    const pawn = new Item("black", j, i)//new THREE.Mesh(geometry, materialBialy);
                     pawn.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5))
                     this.scene.add(pawn);
                 }
@@ -143,15 +157,13 @@ export default class Game {
         this.camera.lookAt(this.scene.position)
 
         if ((this.doneW != true || this.doneB != true) && !this.pawnsMade) {
-            if (playerWhiteLoggedIn) {
+            if (playerWhiteLoggedIn && !playerBlackLoggedIn) {
                 this.makeWhitePons()
-                console.log("WHITE")
                 this.doneW = true
                 this.pawnsMade = true
             }
             if (playerBlackLoggedIn) {
                 this.makeBlackPons()
-                console.log("BLACK")
                 this.doneB = true
                 this.pawnsMade = true
             }
@@ -164,7 +176,6 @@ export default class Game {
             './textures/redwood.jpg',
             './textures/yellowwood.jpg'
         ]
-        console.log('change material')
         return new THREE.TextureLoader().load(materials[num])
     }
 }

@@ -14,17 +14,13 @@ app.listen(PORT, function () {
 
 app.post("/loginPlayer", function (req, res) {
     userLogin = req.body
-    console.log(userLogin)
-    console.log(players + " " + players.length)
     if (players.length == 0) {
-        console.log("FIRST")
         players.push(userLogin)
         let color = "white"
         const jsonBack = { color: color, login: userLogin }
         res.end(JSON.stringify(jsonBack))
     }
     else if (players.length == 1 && players[0] != userLogin) {
-        console.log("SECOND")
         players.push(userLogin)
         let color = "black"
         const jsonBack = { color: color, login: userLogin }

@@ -7,7 +7,7 @@ class Pawn extends THREE.Mesh {
             transparent: true,
             opacity: 1,
             side: THREE.DoubleSide, // dwustronny
-            map: color = new THREE.TextureLoader().load(color === "white" ? './textures/whitewood.jpg' : './textures/redwood.jpg'), // plik tekstury
+            map: new THREE.TextureLoader().load(color === "white" ? './textures/whitewood.jpg' : './textures/redwood.jpg'), // plik tekstury
         })
 
         //this.cube = new THREE.Mesh(geometry, material);
@@ -19,7 +19,6 @@ class Pawn extends THREE.Mesh {
         this.position.set(x, y, z)
     }
     getColor() {
-        console.log(this.col)
         return this.col
     }
 }

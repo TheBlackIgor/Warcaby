@@ -69,6 +69,7 @@ export default class Game {
         this.mouseVector = new THREE.Vector2()
         this.intersects = this.raycaster.intersectObjects(this.scene.children);
         this.currentPawn = ""
+        this.currentObj = ""
 
         window.addEventListener('mousedown', e => {
             try {
@@ -83,15 +84,52 @@ export default class Game {
                     this.raycaster.setFromCamera(this.mouseVector, this.camera);
                     const intersects = this.raycaster.intersectObjects(this.scene.children);
                     if (intersects[0].object != this.currentPawn) {
-                        this.currentPawn = this.raycaster.intersectObjects(this.scene.children)[0].object;
-                        if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
-                            console.log(this.currentPawn)
-                            this.currentPawn.material.map = this.setMaterial(2)
-                        } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
-                            this.currentPawn.material.map = this.setMaterial(2)
-                            console.log(this.currentPawn)
+
+                        this.currentObj = this.raycaster.intersectObjects(this.scene.children)[0].object;
+
+                        if (this.currentObj.getType() === "item") {
+                            let newPos = this.currentObj.getPosition()
+                            console.log(this.currentObj.getColor())
+                            if (this.currentObj.getColor() === "black") {
+                                console.log(this.currentPawn)
+                                if (playerBlackLoggedIn && this.currentPawn.getColor() === "black") {
+                                    let lastPos = this.currentPawn.getPos()
+
+                                    if (
+                                        (lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === -1)
+                                        && this.pionki[newPos.y][newPos.x] === 0
+                                    ) {
+                                        this.currentPawn.setPosition(14 * (newPos.x - 3.5), 24, 14 * (newPos.y - 3.5))
+                                        this.pionki[lastPos.y][lastPos.x] = 0
+                                        this.pionki[newPos.y][newPos.x] = 2
+                                        this.currentPawn.setPos(newPos.x, newPos.y)
+                                    }
+
+                                }
+                                else if (!playerBlackLoggedIn && this.currentPawn.getColor() === "white") {
+                                    let lastPos = this.currentPawn.getPos()
+                                    if ((lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === 1)
+                                        && this.pionki[newPos.y][newPos.x] === 0
+                                    ) {
+                                        this.currentPawn.setPosition(14 * (newPos.x - 3.5), 24, 14 * (newPos.y - 3.5))
+                                        this.pionki[lastPos.y][lastPos.x] = 0
+                                        this.pionki[newPos.y][newPos.x] = 1
+                                        this.currentPawn.setPos(newPos.x, newPos.y)
+                                    }
+
+                                }
+                                console.table(this.pionki)
+                            }
+                            this.currentPawn = ""
                         }
-                        console.log(this.currentPawn.getColor());
+                        if (this.currentObj.getType() === "pawn") {
+                            this.currentPawn = this.currentObj
+                            if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
+                                this.currentPawn.material.map = this.setMaterial(2)
+                            } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
+                                this.currentPawn.material.map = this.setMaterial(2)
+                            }
+                        }
                     } else {
                         this.currentPawn = ""
                     }
@@ -120,14 +158,14 @@ export default class Game {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.szachownica[i][j] == 0) {
-                    const pawn = new Item("white", j, i)//new THREE.Mesh(geometry, materialBialy);
-                    pawn.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5))
-                    this.scene.add(pawn);
+                    const item = new Item("white", j, i)
+                    item.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5), j, i)
+                    this.scene.add(item);
                 }
                 else {
-                    const pawn = new Item("black", j, i)//new THREE.Mesh(geometry, materialBialy);
-                    pawn.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5))
-                    this.scene.add(pawn);
+                    const item = new Item("black", j, i)
+                    item.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5), j, i)
+                    this.scene.add(item);
                 }
             }
         }
@@ -137,12 +175,12 @@ export default class Game {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.pionki[i][j] == 1) {
-                    const pawn = new Pawn("white")
+                    const pawn = new Pawn("white", j, i)
                     pawn.setPosition(14 * (j - 3.5), 24, 14 * (i - 3.5))
                     this.scene.add(pawn);
                 }
                 else if (this.pionki[i][j] == 2) {
-                    const pawn = new Pawn("black")
+                    const pawn = new Pawn("black", j, i)
                     pawn.setPosition(14 * (j - 3.5), 24, 14 * (i - 3.5))
                     this.scene.add(pawn);
                 }

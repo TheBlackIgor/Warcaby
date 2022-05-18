@@ -1,6 +1,6 @@
 class Pawn extends THREE.Mesh {
 
-    constructor(color) {
+    constructor(color, x, y) {
         const geometry = new THREE.CylinderGeometry(6, 6, 3, 16)
         const material = new THREE.MeshBasicMaterial({
             wireframe: false,
@@ -13,13 +13,25 @@ class Pawn extends THREE.Mesh {
         //this.cube = new THREE.Mesh(geometry, material);
         super(geometry, material) // wywołanie konstruktora klasy z której dziedziczymy czyli z Mesha
         this.col = color
+        this.x = x
+        this.y = y
     }
 
+    setPos(x, y) {
+        this.x = x
+        this.y = y
+    }
+    getPos() {
+        return { x: this.x, y: this.y }
+    }
     setPosition(x, y, z) {
         this.position.set(x, y, z)
     }
     getColor() {
         return this.col
+    }
+    getType() {
+        return "pawn"
     }
 }
 

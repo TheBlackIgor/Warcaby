@@ -44,8 +44,11 @@ export default class Game {
             [0, 1, 0, 1, 0, 1, 0, 1],
             [1, 0, 1, 0, 1, 0, 1, 0],
         ]
+        this.tabWhite = []
+        this.tabBlack = []
 
         this.board()
+        this.TWEEN = new TWEEN.Tween()
 
         document.getElementById("root").append(this.renderer.domElement);
 
@@ -114,7 +117,15 @@ export default class Game {
                                         this.currentPawn.setPosition(14 * (newPos.x - 3.5), 24, 14 * (newPos.y - 3.5))
                                         this.pionki[lastPos.y][lastPos.x] = 0
                                         this.pionki[newPos.y][newPos.x] = 1
+                                        this.TWEEN = new TWEEN.Tween(this.currentPawn.position) // co
+                                            .to({ x: newPos.x, z: newPos.y }, 500) // do jakiej pozycji, w jakim czasie
+                                            .repeat(1) // liczba powtórzeń
+                                            .easing(TWEEN.Easing.Bounce.Out) // typ easingu (zmiana w czasie)
+                                            .onUpdate(() => { console.log(this.currentPawn.position) })
+                                            .onComplete(() => { console.log("koniec animacji") }) // funkcja po zakończeniu animacji
+                                            .start()
                                         this.currentPawn.setPos(newPos.x, newPos.y)
+
                                     }
 
                                 }
@@ -172,16 +183,24 @@ export default class Game {
     }
 
     pawns = () => {
+        let whiteID = 0
+        let blackID = 0
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.pionki[i][j] == 1) {
                     const pawn = new Pawn("white", j, i)
                     pawn.setPosition(14 * (j - 3.5), 24, 14 * (i - 3.5))
+                    pawn.setID(whiteID)
+                    whiteID++
+                    this.tabWhite.push(pawn)
                     this.scene.add(pawn);
                 }
                 else if (this.pionki[i][j] == 2) {
                     const pawn = new Pawn("black", j, i)
                     pawn.setPosition(14 * (j - 3.5), 24, 14 * (i - 3.5))
+                    pawn.setID(blackID)
+                    blackID++
+                    this.tabBlack.push(pawn)
                     this.scene.add(pawn);
                 }
             }
@@ -206,6 +225,7 @@ export default class Game {
                 this.pawnsMade = true
             }
         }
+        this.TWEEN.update();
     }
 
     setMaterial(num) {

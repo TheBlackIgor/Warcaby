@@ -8,6 +8,18 @@ app.use(express.text())
 
 let players = []
 
+let board = [
+    [0, 2, 0, 2, 0, 2, 0, 2],
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+]
+
+
 app.listen(PORT, function () {
     console.log("start serwera na porcie " + PORT)
 })
@@ -47,6 +59,23 @@ app.post("/reset", function (req, res) {
 app.post("/quee", function (req, res) {
     const users = { users: players.length }
     res.end(JSON.stringify(users))
+})
+
+app.post("/setBoard", function (req, res) {
+    let pawn = req.body.pawnColor
+    let newPos = req.body.newPos
+    let lastPos = req.body.lastPos
+    let pawnID = req.body.pawnID
+
+    board[lastPos.y][lastPos.x] = 0
+    board[newPos.y][newPos.x] = pawn === "white" ? 1 : 2
+
+    infoToPass = {
+        pawn: pawn,
+        newPos: newPos,
+        lastPos: lastPos,
+        pawnID: pawnID
+    }
 })
 
 app.get("/", function (req, res) {

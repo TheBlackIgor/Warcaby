@@ -24,6 +24,9 @@ class Pawn extends THREE.Mesh {
     getPos() {
         return { x: this.x, y: this.y }
     }
+    setID(id) {
+        this.pawnID = id
+    }
     setPosition(x, y, z) {
         this.position.set(x, y, z)
     }

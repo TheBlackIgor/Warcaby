@@ -48,7 +48,6 @@ export default class Game {
         this.tabBlack = []
 
         this.board()
-        this.TWEEN = new TWEEN.Tween()
 
         document.getElementById("root").append(this.renderer.domElement);
 
@@ -114,16 +113,14 @@ export default class Game {
                                     if ((lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === 1)
                                         && this.pionki[newPos.y][newPos.x] === 0
                                     ) {
-                                        this.currentPawn.setPosition(14 * (newPos.x - 3.5), 24, 14 * (newPos.y - 3.5))
-                                        this.pionki[lastPos.y][lastPos.x] = 0
-                                        this.pionki[newPos.y][newPos.x] = 1
-                                        this.TWEEN = new TWEEN.Tween(this.currentPawn.position) // co
-                                            .to({ x: newPos.x, z: newPos.y }, 500) // do jakiej pozycji, w jakim czasie
-                                            .repeat(1) // liczba powtórzeń
-                                            .easing(TWEEN.Easing.Bounce.Out) // typ easingu (zmiana w czasie)
-                                            .onUpdate(() => { console.log(this.currentPawn.position) })
+                                        new TWEEN.Tween(this.currentPawn.position) // co
+                                            .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
+                                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
                                             .onComplete(() => { console.log("koniec animacji") }) // funkcja po zakończeniu animacji
                                             .start()
+                                        this.pionki[lastPos.y][lastPos.x] = 0
+                                        this.pionki[newPos.y][newPos.x] = 1
+
                                         this.currentPawn.setPos(newPos.x, newPos.y)
 
                                     }
@@ -225,7 +222,7 @@ export default class Game {
                 this.pawnsMade = true
             }
         }
-        this.TWEEN.update();
+        TWEEN.update();
     }
 
     setMaterial(num) {

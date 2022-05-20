@@ -46,6 +46,16 @@ export default class Game {
         ]
         this.tabWhite = []
         this.tabBlack = []
+        this.tabBoard = [
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 0],
+        ];
         this.timeoutSetted = false
         this.getDataInterval
 
@@ -77,11 +87,25 @@ export default class Game {
         window.addEventListener('mousedown', e => {
             try {
                 if (playerBlackLoggedIn || playerWhiteLoggedIn) {
-                    if (this.currentPawn != "")
+
+                    if (this.currentPawn != "") {
                         if (this.currentPawn.getColor() === "black" && playerBlackLoggedIn)
                             this.currentPawn.material.map = this.setMaterial(1)
                         else if (this.currentPawn.getColor() === "white" && !playerBlackLoggedIn)
                             this.currentPawn.material.map = this.setMaterial(0)
+                        if (this.pos.y !== 0) {
+                            if (this.pos.x !== 0)
+                                this.tabBoard[this.pos.y - 1][this.pos.x - 1].material.map = this.setMaterial(3)
+                            if (this.pos.x !== 8)
+                                this.tabBoard[this.pos.y - 1][this.pos.x + 1].material.map = this.setMaterial(3)
+                        }
+                        if (this.pos.y !== 7) {
+                            if (this.pos.x !== 0)
+                                this.tabBoard[this.pos.y + 1][this.pos.x - 1].material.map = this.setMaterial(3)
+                            if (this.pos.x !== 8)
+                                this.tabBoard[this.pos.y + 1][this.pos.x + 1].material.map = this.setMaterial(3)
+                        }
+                    }
                     this.mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
                     this.mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
                     this.raycaster.setFromCamera(this.mouseVector, this.camera);
@@ -94,7 +118,6 @@ export default class Game {
                             let newPos = this.currentObj.getPosition()
                             console.log(this.currentObj.getColor())
                             if (this.currentObj.getColor() === "black") {
-                                console.log(this.currentPawn)
                                 if (playerBlackLoggedIn && this.currentPawn.getColor() === "black") {
                                     let lastPos = this.currentPawn.getPos()
 
@@ -148,10 +171,43 @@ export default class Game {
                         }
                         if (this.currentObj.getType() === "pawn") {
                             this.currentPawn = this.currentObj
+                            this.pos = this.currentPawn.getPos()
                             if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
                                 this.currentPawn.material.map = this.setMaterial(2)
+
+                                if (this.pos.y !== 7) {
+                                    if (this.pos.x !== 0)
+                                        if (this.pionki[this.pos.y + 1][this.pos.x - 1] === 0)
+                                            this.tabBoard[this.pos.y + 1][this.pos.x - 1].material.map = this.setMaterial(2)
+                                        else if (this.pos.x < 6 && this.pos.y < 6)
+                                            if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x - 2] === 0)
+                                                this.tabBoard[this.pos.y + 2][this.pos.x - 2].material.map = this.setMaterial(2)
+
+                                    if (this.pos.x !== 8)
+                                        if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 0)
+                                            this.tabBoard[this.pos.y + 1][this.pos.x + 1].material.map = this.setMaterial(2)
+                                        else if (this.pos.x < 6 && this.pos.y > 1)
+                                            if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x + 2] === 0)
+                                                this.tabBoard[this.pos.y + 2][this.pos.x + 2].material.map = this.setMaterial(2)
+                                }
+
                             } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
                                 this.currentPawn.material.map = this.setMaterial(2)
+                                if (this.pos.y !== 0) {
+                                    if (this.pos.x !== 0)
+                                        if (this.pionki[this.pos.y - 1][this.pos.x - 1] === 0)
+                                            this.tabBoard[this.pos.y - 1][this.pos.x - 1].material.map = this.setMaterial(2)
+                                        else if (this.pos.x > 1 && this.pos.y > 1)
+                                            if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x - 2] === 0)
+                                                this.tabBoard[this.pos.y - 2][this.pos.x - 2].material.map = this.setMaterial(2)
+
+                                    if (this.pos.x !== 8)
+                                        if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 0)
+                                            this.tabBoard[this.pos.y - 1][this.pos.x + 1].material.map = this.setMaterial(2)
+                                        else if (this.pos.x < 6 && this.pos.y > 1)
+                                            if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x + 2] === 0)
+                                                this.tabBoard[this.pos.y - 2][this.pos.x + 2].material.map = this.setMaterial(2)
+                                }
                             }
                         }
                     } else {
@@ -215,6 +271,7 @@ export default class Game {
                 else {
                     const item = new Item("black", j, i)
                     item.setPosition(14 * (j - 3.5), 20, 14 * (i - 3.5), j, i)
+                    this.tabBoard[i][j] = item
                     this.scene.add(item);
                 }
             }
@@ -275,7 +332,8 @@ export default class Game {
         const materials = [
             './textures/whitewood.jpg',
             './textures/redwood.jpg',
-            './textures/yellowwood.jpg'
+            './textures/yellowwood.jpg',
+            './textures/blackwood.jpg'
         ]
         return new THREE.TextureLoader().load(materials[num])
     }

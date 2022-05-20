@@ -64,6 +64,19 @@ const handleQuee = () => {
         .then(response => response.json())
         .then(
             data => {
+                if (data.users < 2)
+                    setTimeout(handleQuee, 1000)
+                else
+                    document.querySelector('.waiting').style.display = "none"
+            })
+}
+
+const currentMove = () => {
+    const body = {}
+    fetch("/quee", { method: "post", body }) // fetch
+        .then(response => response.json())
+        .then(
+            data => {
                 console.log(data.users)
                 if (data.users < 2)
                     setTimeout(handleQuee, 1000)

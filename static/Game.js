@@ -46,6 +46,8 @@ export default class Game {
         ]
         this.tabWhite = []
         this.tabBlack = []
+        this.timeoutSetted = false
+        this.getDataInterval
 
         this.board()
 
@@ -59,7 +61,6 @@ export default class Game {
         this.render() // wywołanie metody render
 
         this.onWindowResize = () => {
-            console.log(this)
             this.camera.aspect = window.innerWidth / window.innerHeight;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -101,12 +102,23 @@ export default class Game {
                                         (lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === -1)
                                         && this.pionki[newPos.y][newPos.x] === 0
                                     ) {
-                                        this.currentPawn.setPosition(14 * (newPos.x - 3.5), 24, 14 * (newPos.y - 3.5))
+                                        new TWEEN.Tween(this.currentPawn.position) // co
+                                            .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
+                                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
+                                            .start()
                                         this.pionki[lastPos.y][lastPos.x] = 0
                                         this.pionki[newPos.y][newPos.x] = 2
                                         this.currentPawn.setPos(newPos.x, newPos.y)
-                                    }
 
+                                        const body = JSON.stringify({
+                                            pawnColor: this.currentPawn.getColor(),
+                                            newPos: newPos,
+                                            lastPos: lastPos,
+                                            pawnID: this.currentPawn.getID()
+                                        })
+
+                                        fetch("/setBoard", { method: "post", body }) // fetch
+                                    }
                                 }
                                 else if (!playerBlackLoggedIn && this.currentPawn.getColor() === "white") {
                                     let lastPos = this.currentPawn.getPos()
@@ -116,17 +128,21 @@ export default class Game {
                                         new TWEEN.Tween(this.currentPawn.position) // co
                                             .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
                                             .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
-                                            .onComplete(() => { console.log("koniec animacji") }) // funkcja po zakończeniu animacji
                                             .start()
                                         this.pionki[lastPos.y][lastPos.x] = 0
                                         this.pionki[newPos.y][newPos.x] = 1
-
                                         this.currentPawn.setPos(newPos.x, newPos.y)
 
-                                    }
+                                        const body = JSON.stringify({
+                                            pawnColor: this.currentPawn.getColor(),
+                                            newPos: newPos,
+                                            lastPos: lastPos,
+                                            pawnID: this.currentPawn.getID()
+                                        })
 
+                                        fetch("/setBoard", { method: "post", body }) // fetch
+                                    }
                                 }
-                                console.table(this.pionki)
                             }
                             this.currentPawn = ""
                         }
@@ -149,6 +165,33 @@ export default class Game {
         })
     }
 
+    getData() {
+        const body = {}
+        fetch("/getBoard", { method: "post", body }) // fetch
+            .then(response => response.json())
+            .then(
+                res => {
+                    let data = res
+                    if (playerBlackLoggedIn && data.pawnColor === "white") {
+                        new TWEEN.Tween(this.tabWhite[data.pawnID].position)
+                            .to({ x: 14 * (data.newPos.x - 3.5), z: 14 * (data.newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
+                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
+                            .start()
+                        this.pionki[data.lastPos.y][data.lastPos.x] = 0
+                        this.pionki[data.newPos.y][data.newPos.x] = 1
+                        this.tabWhite[data.pawnID].setPos(data.newPos.x, data.newPos.y)
+                    } else if (!playerBlackLoggedIn && data.pawnColor === "black") {
+                        new TWEEN.Tween(this.tabBlack[data.pawnID].position)
+                            .to({ x: 14 * (data.newPos.x - 3.5), z: 14 * (data.newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
+                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
+                            .start()
+                        this.pionki[data.lastPos.y][data.lastPos.x] = 0
+                        this.pionki[data.newPos.y][data.newPos.x] = 2
+                        this.tabBlack[data.pawnID].setPos(data.newPos.x, data.newPos.y)
+                    }
+                })
+    }
+
     makeWhitePons() {
         this.board()
         this.pawns()
@@ -162,7 +205,6 @@ export default class Game {
     }
 
     board = () => {
-
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.szachownica[i][j] == 0) {
@@ -221,6 +263,10 @@ export default class Game {
                 this.doneB = true
                 this.pawnsMade = true
             }
+        }
+        if (!this.timeoutSetted && this.pawnsMade) {
+            this.timeoutSetted = true
+            this.getDataInterval = setInterval(() => this.getData(), 1000)
         }
         TWEEN.update();
     }

@@ -7,6 +7,7 @@ app.use(express.static('static'))
 app.use(express.text())
 
 let players = []
+let infoToPass = { pawnColor: "none" }
 
 let board = [
     [0, 2, 0, 2, 0, 2, 0, 2],
@@ -53,6 +54,7 @@ app.post("/loginPlayer", function (req, res) {
 app.post("/reset", function (req, res) {
     players = []
     console.log("clear");
+    infoToPass = { pawnColor: "none" }
     res.end(JSON.stringify({}))
 })
 
@@ -62,20 +64,27 @@ app.post("/quee", function (req, res) {
 })
 
 app.post("/setBoard", function (req, res) {
-    let pawn = req.body.pawnColor
-    let newPos = req.body.newPos
-    let lastPos = req.body.lastPos
-    let pawnID = req.body.pawnID
+    let data = JSON.parse(req.body)
+    let pawnColor = data.pawnColor
+    let newPos = data.newPos
+    let lastPos = data.lastPos
+    let pawnID = data.pawnID
 
     board[lastPos.y][lastPos.x] = 0
-    board[newPos.y][newPos.x] = pawn === "white" ? 1 : 2
+    board[newPos.y][newPos.x] = pawnColor === "white" ? 1 : 2
 
     infoToPass = {
-        pawn: pawn,
+        pawnColor: pawnColor,
         newPos: newPos,
         lastPos: lastPos,
         pawnID: pawnID
     }
+
+    res.end("success")
+})
+
+app.post("/getBoard", function (req, res) {
+    res.end(JSON.stringify(infoToPass))
 })
 
 app.get("/", function (req, res) {

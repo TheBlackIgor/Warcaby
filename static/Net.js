@@ -1,5 +1,8 @@
 let playerWhiteLoggedIn = false
 let playerBlackLoggedIn = false
+let bothPlayersLogged = false
+let yourTurn = false
+let yourColor = ''
 
 document.getElementById("loginBtn").onclick = function () {
     const login = document.getElementById("loginInput").value
@@ -20,8 +23,9 @@ document.getElementById("loginBtn").onclick = function () {
                         document.getElementById("userLogin").style.display = "none";
                         document.getElementById("bg").style.display = "none";
                         playerWhiteLoggedIn = true
-                        //document.querySelector('.waiting').style.display = "flex"
-                        //handleQuee()
+                        document.querySelector('.waiting').style.display = "flex"
+                        yourColor = 'white'
+                        handleQuee()
                     }
                     if (data.color == "black") {
                         document.getElementById("statusBar").innerHTML = ""
@@ -30,6 +34,8 @@ document.getElementById("loginBtn").onclick = function () {
                         document.getElementById("bg").style.display = "none";
                         playerBlackLoggedIn = true
                         playerWhiteLoggedIn = true
+                        bothPlayersLogged = true
+                        yourColor = 'black'
                     }
                     if (data.color == "no color") {
                         document.getElementById("statusBar").innerHTML = ""
@@ -38,6 +44,10 @@ document.getElementById("loginBtn").onclick = function () {
                     if (data.color == "login powtórzony") {
                         document.getElementById("statusBar").innerHTML = ""
                         document.getElementById("statusBar").innerHTML += `<h2>ERROR<h2><br><p>Login powtórzony.</p>`
+                    }
+                    if (playerBlackLoggedIn) {
+                        document.querySelector('.waiting').style.display = "flex"
+                        document.querySelector('#text').innerHTML = 30
                     }
                 } // dane odpowiedzi z serwera
             )
@@ -53,6 +63,7 @@ const reset = () => {
         .then(data => {
             playerWhiteLoggedIn = false
             playerBlackLoggedIn = false
+            yourColor = ""
         })
 }
 
@@ -66,21 +77,10 @@ const handleQuee = () => {
             data => {
                 if (data.users < 2)
                     setTimeout(handleQuee, 1000)
-                else
+                else {
                     document.querySelector('.waiting').style.display = "none"
-            })
-}
-
-const currentMove = () => {
-    const body = {}
-    fetch("/quee", { method: "post", body }) // fetch
-        .then(response => response.json())
-        .then(
-            data => {
-                console.log(data.users)
-                if (data.users < 2)
-                    setTimeout(handleQuee, 1000)
-                else
-                    document.querySelector('.waiting').style.display = "none"
+                    bothPlayersLogged = true
+                    yourTurn = true
+                }
             })
 }

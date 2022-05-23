@@ -7,7 +7,7 @@ app.use(express.static('static'))
 app.use(express.text())
 
 let players = []
-let infoToPass = { pawnColor: "none" }
+let capture = { color: "none" }
 
 let board = [
     [0, 2, 0, 2, 0, 2, 0, 2],
@@ -19,6 +19,9 @@ let board = [
     [0, 1, 0, 1, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0],
 ]
+let turn = "white"
+let infoToPass = { pawnColor: "none", turn: "white" }
+let winner = 'none'
 
 
 app.listen(PORT, function () {
@@ -54,7 +57,10 @@ app.post("/loginPlayer", function (req, res) {
 app.post("/reset", function (req, res) {
     players = []
     console.log("clear");
-    infoToPass = { pawnColor: "none" }
+    infoToPass = { pawnColor: "none", turn: "white", winner: 'none' }
+    capture = { color: "none" }
+    winner = 'none'
+
     res.end(JSON.stringify({}))
 })
 
@@ -64,6 +70,7 @@ app.post("/quee", function (req, res) {
 })
 
 app.post("/setBoard", function (req, res) {
+    turn = turn === "white" ? "black" : "white"
     let data = JSON.parse(req.body)
     let pawnColor = data.pawnColor
     let newPos = data.newPos
@@ -77,8 +84,11 @@ app.post("/setBoard", function (req, res) {
         pawnColor: pawnColor,
         newPos: newPos,
         lastPos: lastPos,
-        pawnID: pawnID
+        pawnID: pawnID,
+        turn: turn,
+        winner: winner
     }
+    console.log(turn)
 
     res.end("success")
 })
@@ -86,6 +96,34 @@ app.post("/setBoard", function (req, res) {
 app.post("/getBoard", function (req, res) {
     res.end(JSON.stringify(infoToPass))
 })
+
+app.post("/capturing", function (req, res) {
+    let data = JSON.parse(req.body)
+    let color = data.color
+    let pawnID = data.pawnID
+
+    console.log(pawnID)
+
+    capture = {
+        color: color,
+        pawnID: pawnID
+    }
+
+    res.end("success")
+})
+
+app.post("/getCapture", function (req, res) {
+    res.end(JSON.stringify(capture))
+})
+
+app.post("/setWinner", function (req, res) {
+    let data = JSON.parse(req.body)
+    console.log(data.winner)
+    winner = data.winner
+
+    res.end("success")
+})
+
 
 app.get("/", function (req, res) {
     res.sendFile(path.join(__dirname + "/static/index.html"))

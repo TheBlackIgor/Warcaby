@@ -58,6 +58,11 @@ export default class Game {
         ];
         this.timeoutSetted = false
         this.getDataInterval
+        this.lastBlocks = [{}, {}]
+        this.blackScore = 0
+        this.whiteScore = 0
+        this.zbite = []
+        this.timer = 30
 
         this.board()
 
@@ -85,144 +90,236 @@ export default class Game {
         this.currentObj = ""
 
         window.addEventListener('mousedown', e => {
-            try {
-                if (playerBlackLoggedIn || playerWhiteLoggedIn) {
+            if (yourTurn)
+                try {
+                    if (playerBlackLoggedIn || playerWhiteLoggedIn) {
+                        if (this.currentPawn != "") {
+                            if (this.currentPawn.getColor() === "black" && playerBlackLoggedIn)
+                                this.currentPawn.material.map = this.setMaterial(1)
+                            else if (this.currentPawn.getColor() === "white" && !playerBlackLoggedIn)
+                                this.currentPawn.material.map = this.setMaterial(0)
 
-                    if (this.currentPawn != "") {
-                        if (this.currentPawn.getColor() === "black" && playerBlackLoggedIn)
-                            this.currentPawn.material.map = this.setMaterial(1)
-                        else if (this.currentPawn.getColor() === "white" && !playerBlackLoggedIn)
-                            this.currentPawn.material.map = this.setMaterial(0)
-                        if (this.pos.y !== 0) {
-                            if (this.pos.x !== 0)
-                                this.tabBoard[this.pos.y - 1][this.pos.x - 1].material.map = this.setMaterial(3)
-                            if (this.pos.x !== 8)
-                                this.tabBoard[this.pos.y - 1][this.pos.x + 1].material.map = this.setMaterial(3)
+                            this.tabBoard[this.lastBlocks[0].y][this.lastBlocks[0].x].material.map = this.setMaterial(3)
+                            this.tabBoard[this.lastBlocks[1].y][this.lastBlocks[1].x].material.map = this.setMaterial(3)
                         }
-                        if (this.pos.y !== 7) {
-                            if (this.pos.x !== 0)
-                                this.tabBoard[this.pos.y + 1][this.pos.x - 1].material.map = this.setMaterial(3)
-                            if (this.pos.x !== 8)
-                                this.tabBoard[this.pos.y + 1][this.pos.x + 1].material.map = this.setMaterial(3)
-                        }
-                    }
-                    this.mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
-                    this.mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                    this.raycaster.setFromCamera(this.mouseVector, this.camera);
-                    const intersects = this.raycaster.intersectObjects(this.scene.children);
-                    if (intersects[0].object != this.currentPawn) {
 
-                        this.currentObj = this.raycaster.intersectObjects(this.scene.children)[0].object;
+                        this.mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+                        this.mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                        this.raycaster.setFromCamera(this.mouseVector, this.camera);
+                        const intersects = this.raycaster.intersectObjects(this.scene.children);
+                        if (intersects[0].object != this.currentPawn) {
 
-                        if (this.currentObj.getType() === "item") {
-                            let newPos = this.currentObj.getPosition()
-                            console.log(this.currentObj.getColor())
-                            if (this.currentObj.getColor() === "black") {
-                                if (playerBlackLoggedIn && this.currentPawn.getColor() === "black") {
-                                    let lastPos = this.currentPawn.getPos()
+                            this.currentObj = this.raycaster.intersectObjects(this.scene.children)[0].object;
 
-                                    if (
-                                        (lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === -1)
-                                        && this.pionki[newPos.y][newPos.x] === 0
-                                    ) {
-                                        new TWEEN.Tween(this.currentPawn.position) // co
-                                            .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
-                                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
-                                            .start()
-                                        this.pionki[lastPos.y][lastPos.x] = 0
-                                        this.pionki[newPos.y][newPos.x] = 2
-                                        this.currentPawn.setPos(newPos.x, newPos.y)
+                            if (this.currentObj.getType() === "item") {
+                                let newPos = this.currentObj.getPosition()
+                                console.log(this.currentObj.getColor())
+                                let lastPos = this.currentPawn.getPos()
+                                if (this.currentObj.getColor() === "black") {
+                                    if (playerBlackLoggedIn && this.currentPawn.getColor() === "black") {
+                                        if (this.pionki[newPos.y][newPos.x] === 0)
+                                            if ((lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === -1)) {
+                                                this.move("black", newPos, lastPos)
+                                            } else if ((lastPos.x - newPos.x === 2 && lastPos.y - newPos.y === -2)
+                                                && this.pionki[lastPos.y + 1][lastPos.x - 1] === 1) {
+                                                for (let i = 0; i < this.tabWhite.length; i++) {
+                                                    if (this.tabWhite[i].x === lastPos.x - 1 && this.tabWhite[i].y === lastPos.y + 1) {
+                                                        this.blackScore += 1
+                                                        this.scene.remove(this.tabWhite[i])
+                                                        this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
+                                                        if (this.blackScore === 8) {
+                                                            alert("black won")
+                                                        }
+                                                        const body = JSON.stringify({
+                                                            color: "white",
+                                                            pawnID: i
+                                                        })
 
-                                        const body = JSON.stringify({
-                                            pawnColor: this.currentPawn.getColor(),
-                                            newPos: newPos,
-                                            lastPos: lastPos,
-                                            pawnID: this.currentPawn.getID()
-                                        })
+                                                        fetch("/capturing ", { method: "post", body })
+                                                    }
+                                                }
+                                                this.move("black", newPos, lastPos)
+                                            } else if (lastPos.x - newPos.x === -2 && lastPos.y - newPos.y === -2
+                                                && this.pionki[lastPos.y + 1][lastPos.x + 1] === 1) {
+                                                for (let i = 0; i < this.tabWhite.length; i++) {
+                                                    if (this.tabWhite[i].x === lastPos.x + 1 && this.tabWhite[i].y === lastPos.y + 1) {
+                                                        this.blackScore += 1
+                                                        this.scene.remove(this.tabWhite[i])
+                                                        this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
+                                                        if (this.blackScore === 8) {
+                                                            alert("black won")
+                                                        }
+                                                        const body = JSON.stringify({
+                                                            color: "white",
+                                                            pawnID: i
+                                                        })
 
-                                        fetch("/setBoard", { method: "post", body }) // fetch
+                                                        fetch("/capturing ", { method: "post", body })
+                                                    }
+                                                }
+                                                this.move("black", newPos, lastPos)
+                                            }
+                                    }
+                                    else if (!playerBlackLoggedIn && this.currentPawn.getColor() === "white") {
+                                        if (this.pionki[newPos.y][newPos.x] === 0)
+                                            if ((lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === 1)) {
+                                                this.move("white", newPos, lastPos)
+                                            } else if ((lastPos.x - newPos.x === 2 && lastPos.y - newPos.y === 2)
+                                                && this.pionki[lastPos.y - 1][lastPos.x - 1] === 2) {
+
+                                                for (let i = 0; i < this.tabBlack.length; i++) {
+                                                    if (this.tabBlack[i].x === lastPos.x - 1 && this.tabBlack[i].y === lastPos.y - 1) {
+                                                        this.whiteScore++
+                                                        this.scene.remove(this.tabBlack[i])
+                                                        this.pionki[this.tabBlack[i].y][this.tabBlack[i].x] = 0
+                                                        console.log(this.whiteScore)
+                                                        if (this.whiteScore === 8) {
+                                                            alert("white won")
+                                                        }
+                                                        const body = JSON.stringify({
+                                                            color: "black",
+                                                            pawnID: i
+                                                        })
+
+                                                        fetch("/capturing ", { method: "post", body })
+                                                    }
+                                                }
+                                                this.move("white", newPos, lastPos)
+                                            } else if ((lastPos.x - newPos.x === -2 && lastPos.y - newPos.y === 2)
+                                                && this.pionki[lastPos.y - 1][lastPos.x + 1] === 2) {
+
+                                                for (let i = 0; i < this.tabBlack.length; i++) {
+                                                    if (this.tabBlack[i].x === lastPos.x + 1 && this.tabBlack[i].y === lastPos.y - 1) {
+                                                        this.whiteScore++
+                                                        this.scene.remove(this.tabBlack[i])
+                                                        this.pionki[this.tabBlack[i].y][this.tabBlack[i].x] = 0
+                                                        console.log(this.whiteScore)
+                                                        if (this.whiteScore === 8) {
+                                                            alert("white won")
+                                                        }
+                                                        const body = JSON.stringify({
+                                                            color: "black",
+                                                            pawnID: i
+                                                        })
+
+                                                        fetch("/capturing ", { method: "post", body })
+                                                    }
+                                                }
+                                                this.move("white", newPos, lastPos)
+                                            }
                                     }
                                 }
-                                else if (!playerBlackLoggedIn && this.currentPawn.getColor() === "white") {
-                                    let lastPos = this.currentPawn.getPos()
-                                    if ((lastPos.x - newPos.x === 1 || lastPos.x - newPos.x === -1) && (lastPos.y - newPos.y === 1)
-                                        && this.pionki[newPos.y][newPos.x] === 0
-                                    ) {
-                                        new TWEEN.Tween(this.currentPawn.position) // co
-                                            .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
-                                            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
-                                            .start()
-                                        this.pionki[lastPos.y][lastPos.x] = 0
-                                        this.pionki[newPos.y][newPos.x] = 1
-                                        this.currentPawn.setPos(newPos.x, newPos.y)
+                                this.currentPawn = ""
+                            }
+                            if (this.currentObj.getType() === "pawn") {
+                                this.currentPawn = this.currentObj
+                                this.pos = this.currentPawn.getPos()
+                                if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
+                                    this.currentPawn.material.map = this.setMaterial(2)
 
-                                        const body = JSON.stringify({
-                                            pawnColor: this.currentPawn.getColor(),
-                                            newPos: newPos,
-                                            lastPos: lastPos,
-                                            pawnID: this.currentPawn.getID()
-                                        })
+                                    if (this.pos.y !== 7) {
+                                        if (this.pos.x !== 0)
+                                            if (this.pionki[this.pos.y + 1][this.pos.x - 1] === 0) {
+                                                this.tabBoard[this.pos.y + 1][this.pos.x - 1].material.map = this.setMaterial(2)
+                                                this.lastBlocks[0] = { x: this.pos.x - 1, y: this.pos.y + 1 }
+                                            }
+                                            else if (this.pos.x > 1 && this.pos.y < 6)
+                                                if (this.pionki[this.pos.y + 1][this.pos.x - 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x - 2] === 0) {
+                                                    this.tabBoard[this.pos.y + 2][this.pos.x - 2].material.map = this.setMaterial(2)
+                                                    this.lastBlocks[0] = { x: this.pos.x - 2, y: this.pos.y + 2 }
+                                                }
 
-                                        fetch("/setBoard", { method: "post", body }) // fetch
+                                        if (this.pos.x !== 8)
+                                            if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 0) {
+                                                this.tabBoard[this.pos.y + 1][this.pos.x + 1].material.map = this.setMaterial(2)
+                                                this.lastBlocks[1] = { x: this.pos.x + 1, y: this.pos.y + 1 }
+                                            }
+                                            else if (this.pos.x < 6 && this.pos.y < 6)
+                                                if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x + 2] === 0) {
+                                                    this.tabBoard[this.pos.y + 2][this.pos.x + 2].material.map = this.setMaterial(2)
+                                                    this.lastBlocks[1] = { x: this.pos.x + 2, y: this.pos.y + 2 }
+                                                }
+                                    }
+
+                                } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
+                                    this.currentPawn.material.map = this.setMaterial(2)
+                                    if (this.pos.y !== 0) {
+                                        if (this.pos.x !== 0)
+                                            if (this.pionki[this.pos.y - 1][this.pos.x - 1] === 0) {
+                                                this.tabBoard[this.pos.y - 1][this.pos.x - 1].material.map = this.setMaterial(2)
+                                                this.lastBlocks[0] = { x: this.pos.x - 1, y: this.pos.y - 1 }
+                                            }
+                                            else if (this.pos.x > 1 && this.pos.y > 1)
+                                                if (this.pionki[this.pos.y - 1][this.pos.x - 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x - 2] === 0) {
+                                                    this.tabBoard[this.pos.y - 2][this.pos.x - 2].material.map = this.setMaterial(2)
+                                                    this.lastBlocks[0] = { x: this.pos.x - 2, y: this.pos.y - 2 }
+                                                }
+
+                                        if (this.pos.x !== 8)
+                                            if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 0) {
+                                                this.tabBoard[this.pos.y - 1][this.pos.x + 1].material.map = this.setMaterial(2)
+                                                this.lastBlocks[1] = { x: this.pos.x + 1, y: this.pos.y - 1 }
+                                            }
+                                            else if (this.pos.x < 6 && this.pos.y > 1)
+                                                if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x + 2] === 0) {
+                                                    this.tabBoard[this.pos.y - 2][this.pos.x + 2].material.map = this.setMaterial(2)
+                                                    this.lastBlocks[1] = { x: this.pos.x + 2, y: this.pos.y - 2 }
+                                                }
                                     }
                                 }
                             }
+                        } else {
                             this.currentPawn = ""
                         }
-                        if (this.currentObj.getType() === "pawn") {
-                            this.currentPawn = this.currentObj
-                            this.pos = this.currentPawn.getPos()
-                            if (playerBlackLoggedIn && this.currentPawn.getColor() === 'black') {
-                                this.currentPawn.material.map = this.setMaterial(2)
-
-                                if (this.pos.y !== 7) {
-                                    if (this.pos.x !== 0)
-                                        if (this.pionki[this.pos.y + 1][this.pos.x - 1] === 0)
-                                            this.tabBoard[this.pos.y + 1][this.pos.x - 1].material.map = this.setMaterial(2)
-                                        else if (this.pos.x < 6 && this.pos.y < 6)
-                                            if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x - 2] === 0)
-                                                this.tabBoard[this.pos.y + 2][this.pos.x - 2].material.map = this.setMaterial(2)
-
-                                    if (this.pos.x !== 8)
-                                        if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 0)
-                                            this.tabBoard[this.pos.y + 1][this.pos.x + 1].material.map = this.setMaterial(2)
-                                        else if (this.pos.x < 6 && this.pos.y > 1)
-                                            if (this.pionki[this.pos.y + 1][this.pos.x + 1] === 1 && this.pionki[this.pos.y + 2][this.pos.x + 2] === 0)
-                                                this.tabBoard[this.pos.y + 2][this.pos.x + 2].material.map = this.setMaterial(2)
-                                }
-
-                            } else if (!playerBlackLoggedIn && this.currentPawn.getColor() === 'white') {
-                                this.currentPawn.material.map = this.setMaterial(2)
-                                if (this.pos.y !== 0) {
-                                    if (this.pos.x !== 0)
-                                        if (this.pionki[this.pos.y - 1][this.pos.x - 1] === 0)
-                                            this.tabBoard[this.pos.y - 1][this.pos.x - 1].material.map = this.setMaterial(2)
-                                        else if (this.pos.x > 1 && this.pos.y > 1)
-                                            if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x - 2] === 0)
-                                                this.tabBoard[this.pos.y - 2][this.pos.x - 2].material.map = this.setMaterial(2)
-
-                                    if (this.pos.x !== 8)
-                                        if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 0)
-                                            this.tabBoard[this.pos.y - 1][this.pos.x + 1].material.map = this.setMaterial(2)
-                                        else if (this.pos.x < 6 && this.pos.y > 1)
-                                            if (this.pionki[this.pos.y - 1][this.pos.x + 1] === 2 && this.pionki[this.pos.y - 2][this.pos.x + 2] === 0)
-                                                this.tabBoard[this.pos.y - 2][this.pos.x + 2].material.map = this.setMaterial(2)
-                                }
-                            }
-                        }
-                    } else {
-                        this.currentPawn = ""
                     }
+                } catch (e) {
+                    this.currentPawn = ""
+                    console.log('nie klikasz w pionka')
                 }
-            } catch (e) {
-                this.currentPawn = ""
-                console.log('nie klikasz w pionka')
-            }
         })
+    }
+    move(color, newPos, lastPos) {
+        new TWEEN.Tween(this.currentPawn.position) // co
+            .to({ x: 14 * (newPos.x - 3.5), z: 14 * (newPos.y - 3.5) }, 500) // do jakiej pozycji, w jakim czasie
+            .easing(TWEEN.Easing.Linear.None) // typ easingu (zmiana w czasie)
+            .start()
+        this.pionki[lastPos.y][lastPos.x] = 0
+        this.pionki[newPos.y][newPos.x] = color === "white" ? 1 : 2
+        this.currentPawn.setPos(newPos.x, newPos.y)
+
+        const body = JSON.stringify({
+            pawnColor: this.currentPawn.getColor(),
+            newPos: newPos,
+            lastPos: lastPos,
+            pawnID: this.currentPawn.getID()
+        })
+        //console.table(this.pionki)
+        fetch("/setBoard", { method: "post", body }) // fetch
     }
 
     getData() {
         const body = {}
+        fetch("/getCapture", { method: "post", body })
+            .then(response => response.json())
+            .then(res => {
+                if (playerBlackLoggedIn && res.color === "black") {
+                    if (!this.zbite.includes(res.pawnID)) {
+                        this.scene.remove(this.tabBlack[res.pawnID])
+                        this.zbite.push(res.pawnID)
+                        this.pionki[this.tabBlack[res.pawnID].y][this.tabBlack[res.pawnID].x] = 0
+                        this.whiteScore++
+                        console.log(this.whiteScore)
+                    }
+                } else if (!playerBlackLoggedIn && res.color === "white") {
+                    if (!this.zbite.includes(res.pawnID)) {
+                        this.scene.remove(this.tabWhite[res.pawnID])
+                        this.zbite.push(res.pawnID)
+                        this.pionki[this.tabWhite[res.pawnID].y][this.tabWhite[res.pawnID].x] = 0
+                        this.blackScore++
+                        console.log(this.blackScore)
+                    }
+                }
+            })
         fetch("/getBoard", { method: "post", body }) // fetch
             .then(response => response.json())
             .then(
@@ -244,6 +341,42 @@ export default class Game {
                         this.pionki[data.lastPos.y][data.lastPos.x] = 0
                         this.pionki[data.newPos.y][data.newPos.x] = 2
                         this.tabBlack[data.pawnID].setPos(data.newPos.x, data.newPos.y)
+                    }
+                    if (this.timer < 1) {
+                        let toPass = { winner: yourColor }
+                        fetch("/setWinner", { method: "post", body: toPass })
+                        document.querySelector('#text').innerHTML = "You win"
+                        setTimeout(() => {
+                            reset()
+                            window.location.reload(true);
+                        }, 3000)
+                    } else if (bothPlayersLogged && data.turn !== yourColor) {
+                        yourTurn = false
+                        document.querySelector('.waiting').style.display = 'flex'
+                        this.timer--
+                        document.querySelector('#text').innerHTML = this.timer
+                    } else {
+                        this.timer = 30
+                    }
+                    if ((yourColor === "white" && this.blackScore === 8) || (yourColor === "black" && this.whiteScore === 8)) {
+                        document.querySelector('.waiting').style.display = 'flex'
+                        document.querySelector('#text').innerHTML = "You lost"
+                        setTimeout(() => {
+                            reset()
+                            window.location.reload(true);
+                        }, 3000)
+                        window.location.reload(true);
+                    }
+                    if (bothPlayersLogged && data.turn === yourColor) {
+                        yourTurn = true
+                        document.querySelector('.waiting').style.display = 'none'
+                    }
+                    console.log(res.winner)
+                    if (res.winner === yourColor && res.winner !== "none") {
+                        document.querySelector('#text').innerHTML = "You lost"
+                        alert("You win")
+                        reset()
+                        window.location.reload(true);
                     }
                 })
     }
@@ -312,6 +445,7 @@ export default class Game {
         if ((this.doneW != true || this.doneB != true) && !this.pawnsMade) {
             if (playerWhiteLoggedIn && !playerBlackLoggedIn) {
                 this.makeWhitePons()
+
                 this.doneW = true
                 this.pawnsMade = true
             }

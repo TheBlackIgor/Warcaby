@@ -58,6 +58,7 @@ app.post("/reset", function (req, res) {
     players = []
     console.log("clear");
     infoToPass = { pawnColor: "none", turn: "white", winner: 'none' }
+    turn = "white"
     capture = { color: "none" }
     winner = 'none'
 

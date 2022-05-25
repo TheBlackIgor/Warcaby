@@ -15,6 +15,7 @@ class Pawn extends THREE.Mesh {
         this.col = color
         this.x = x
         this.y = y
+        this.capture = false
     }
 
     setPos(x, y) {
@@ -29,6 +30,9 @@ class Pawn extends THREE.Mesh {
     }
     getID() {
         return this.pawnID
+    }
+    setCapture(x) {
+        this.capture = x
     }
     setPosition(x, y, z) {
         this.position.set(x, y, z)

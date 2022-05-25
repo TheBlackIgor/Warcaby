@@ -123,10 +123,11 @@ export default class Game {
                                             } else if ((lastPos.x - newPos.x === 2 && lastPos.y - newPos.y === -2)
                                                 && this.pionki[lastPos.y + 1][lastPos.x - 1] === 1) {
                                                 for (let i = 0; i < this.tabWhite.length; i++) {
-                                                    if (this.tabWhite[i].x === lastPos.x - 1 && this.tabWhite[i].y === lastPos.y + 1) {
+                                                    if (this.tabWhite[i].x === lastPos.x - 1 && this.tabWhite[i].y === lastPos.y + 1 && !this.tabWhite[i].capture) {
                                                         this.blackScore += 1
                                                         this.scene.remove(this.tabWhite[i])
                                                         this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
+                                                        this.tabWhite[i].setCapture(true)
                                                         if (this.blackScore === 8) {
                                                             alert("black won")
                                                         }
@@ -142,10 +143,11 @@ export default class Game {
                                             } else if (lastPos.x - newPos.x === -2 && lastPos.y - newPos.y === -2
                                                 && this.pionki[lastPos.y + 1][lastPos.x + 1] === 1) {
                                                 for (let i = 0; i < this.tabWhite.length; i++) {
-                                                    if (this.tabWhite[i].x === lastPos.x + 1 && this.tabWhite[i].y === lastPos.y + 1) {
+                                                    if (this.tabWhite[i].x === lastPos.x + 1 && this.tabWhite[i].y === lastPos.y + 1 && !this.tabWhite[i].capture) {
                                                         this.blackScore += 1
                                                         this.scene.remove(this.tabWhite[i])
                                                         this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
+                                                        this.tabWhite[i].setCapture(true)
                                                         if (this.blackScore === 8) {
                                                             alert("black won")
                                                         }
@@ -168,11 +170,12 @@ export default class Game {
                                                 && this.pionki[lastPos.y - 1][lastPos.x - 1] === 2) {
 
                                                 for (let i = 0; i < this.tabBlack.length; i++) {
-                                                    if (this.tabBlack[i].x === lastPos.x - 1 && this.tabBlack[i].y === lastPos.y - 1) {
+                                                    if (this.tabBlack[i].x === lastPos.x - 1 && this.tabBlack[i].y === lastPos.y - 1 && !this.tabBlack[i].capture) {
                                                         this.whiteScore++
                                                         this.scene.remove(this.tabBlack[i])
                                                         this.pionki[this.tabBlack[i].y][this.tabBlack[i].x] = 0
                                                         console.log(this.whiteScore)
+                                                        this.tabBlack[i].setCapture(true)
                                                         if (this.whiteScore === 8) {
                                                             alert("white won")
                                                         }
@@ -189,11 +192,12 @@ export default class Game {
                                                 && this.pionki[lastPos.y - 1][lastPos.x + 1] === 2) {
 
                                                 for (let i = 0; i < this.tabBlack.length; i++) {
-                                                    if (this.tabBlack[i].x === lastPos.x + 1 && this.tabBlack[i].y === lastPos.y - 1) {
+                                                    if (this.tabBlack[i].x === lastPos.x + 1 && this.tabBlack[i].y === lastPos.y - 1 && !this.tabBlack[i].capture) {
                                                         this.whiteScore++
                                                         this.scene.remove(this.tabBlack[i])
                                                         this.pionki[this.tabBlack[i].y][this.tabBlack[i].x] = 0
                                                         console.log(this.whiteScore)
+                                                        this.tabBlack[i].setCapture(true)
                                                         if (this.whiteScore === 8) {
                                                             alert("white won")
                                                         }
@@ -344,7 +348,7 @@ export default class Game {
                     }
                     if (this.timer < 1) {
                         let toPass = { winner: yourColor }
-                        fetch("/setWinner", { method: "post", body: toPass })
+                        fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
                         document.querySelector('#text').innerHTML = "You win"
                         setTimeout(() => {
                             reset()

@@ -376,7 +376,7 @@ export default class Game {
                         document.querySelector('.waiting').style.display = 'none'
                     }
                     console.log(res.winner)
-                    if (res.winner === yourColor && res.winner !== "none") {
+                    if (res.winner !== yourColor && res.winner !== "none") {
                         document.querySelector('#text').innerHTML = "You lost"
                         alert("You win")
                         reset()

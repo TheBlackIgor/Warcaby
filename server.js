@@ -121,6 +121,7 @@ app.post("/setWinner", function (req, res) {
     let data = JSON.parse(req.body)
     console.log(data.winner)
     winner = data.winner
+    infoToPass.winner = winner
 
     res.end("success")
 })

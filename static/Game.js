@@ -70,7 +70,7 @@ export default class Game {
 
 
 
-        this.camera.position.set(0, 100, 100)
+        this.camera.position.set(0, 120, 120)
         this.camera.lookAt(this.scene.position)
 
         this.render() // wywołanie metody render
@@ -129,7 +129,9 @@ export default class Game {
                                                         this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
                                                         this.tabWhite[i].setCapture(true)
                                                         if (this.blackScore === 8) {
-                                                            alert("black won")
+                                                            let toPass = { winner: yourColor }
+                                                            fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
+                                                            this.endGame("win")
                                                         }
                                                         const body = JSON.stringify({
                                                             color: "white",
@@ -149,7 +151,9 @@ export default class Game {
                                                         this.pionki[this.tabWhite[i].y][this.tabWhite[i].x] = 0
                                                         this.tabWhite[i].setCapture(true)
                                                         if (this.blackScore === 8) {
-                                                            alert("black won")
+                                                            let toPass = { winner: yourColor }
+                                                            fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
+                                                            this.endGame("win")
                                                         }
                                                         const body = JSON.stringify({
                                                             color: "white",
@@ -177,7 +181,9 @@ export default class Game {
                                                         console.log(this.whiteScore)
                                                         this.tabBlack[i].setCapture(true)
                                                         if (this.whiteScore === 8) {
-                                                            alert("white won")
+                                                            let toPass = { winner: yourColor }
+                                                            fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
+                                                            this.endGame("win")
                                                         }
                                                         const body = JSON.stringify({
                                                             color: "black",
@@ -199,7 +205,9 @@ export default class Game {
                                                         console.log(this.whiteScore)
                                                         this.tabBlack[i].setCapture(true)
                                                         if (this.whiteScore === 8) {
-                                                            alert("white won")
+                                                            let toPass = { winner: yourColor }
+                                                            fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
+                                                            this.endGame("win")
                                                         }
                                                         const body = JSON.stringify({
                                                             color: "black",
@@ -349,12 +357,8 @@ export default class Game {
                     if (this.timer < 1) {
                         let toPass = { winner: yourColor }
                         fetch("/setWinner", { method: "post", body: JSON.stringify(toPass) })
-                        document.querySelector('#text').innerHTML = "You win"
-                        setTimeout(() => {
-                            reset()
-                            window.location.reload(true);
-                        }, 3000)
-                    } else if (bothPlayersLogged && data.turn !== yourColor) {
+                        this.endGame("win")
+                    } else if (bothPlayersLogged && data.turn !== yourColor && data.winner === "none") {
                         yourTurn = false
                         document.querySelector('.waiting').style.display = 'flex'
                         this.timer--
@@ -363,13 +367,7 @@ export default class Game {
                         this.timer = 30
                     }
                     if ((yourColor === "white" && this.blackScore === 8) || (yourColor === "black" && this.whiteScore === 8)) {
-                        document.querySelector('.waiting').style.display = 'flex'
-                        document.querySelector('#text').innerHTML = "You lost"
-                        setTimeout(() => {
-                            reset()
-                            window.location.reload(true);
-                        }, 3000)
-                        window.location.reload(true);
+                        this.endGame("lost")
                     }
                     if (bothPlayersLogged && data.turn === yourColor) {
                         yourTurn = true
@@ -377,24 +375,29 @@ export default class Game {
                     }
                     console.log(res.winner)
                     if (res.winner !== yourColor && res.winner !== "none") {
-                        document.querySelector('#text').innerHTML = "You lost"
-                        alert("You win")
-                        reset()
-                        window.location.reload(true);
+                        this.endGame("lost")
                     }
                 })
+    }
+    endGame(result) {
+        document.querySelector('.waiting').style.display = 'flex'
+        document.querySelector('#text').innerHTML = "You " + result
+        setTimeout(() => {
+            reset()
+            window.location.reload(true);
+        }, 3000)
     }
 
     makeWhitePons() {
         this.board()
         this.pawns()
-        this.camera.position.set(0, 100, 100)
+        this.camera.position.set(0, 120, 120)
     }
 
     makeBlackPons() {
         this.board()
         this.pawns()
-        this.camera.position.set(0, 100, -100)
+        this.camera.position.set(0, 120, -120)
     }
 
     board = () => {

@@ -15,13 +15,12 @@ body {
     justify-content: center;
     flex-direction: column;
     padding: 5px;
-    color: greenyellow;
-    border: 5px yellowgreen solid;
+    color: rgb(199, 255, 88);
     border-radius: 20px;
 }
 
 .btn {
-    background-color: greenyellow;
+    background-color: rgb(199, 255, 88);
     color: black;
     width: 40%;
     text-align: center;
@@ -35,9 +34,9 @@ body {
     width: 40%;
     height: 20px;
     background-color: rgba(0, 0, 0, 0);
-    border: 2px solid yellowgreen;
     border-radius: 20px;
-    color: yellowgreen;
+    color: rgb(199, 255, 88);
+    border: 3px solid rgb(199, 255, 88);
 }
 
 .transparentBg {
@@ -52,9 +51,9 @@ body {
     position: absolute;
     z-index: 100000;
     width: 100%;
-    border-bottom: 2px solid yellowgreen;
+    border-bottom: 2px solid rgb(199, 255, 88);
     background-color: green;
-    color: yellowgreen;
+    color: rgb(199, 255, 88);
     font-size: 10px;
 }
 
